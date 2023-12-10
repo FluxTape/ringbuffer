@@ -1,52 +1,45 @@
-mod ringbuffer;
+mod test;
 
-#[cfg(test)]
-mod tests {
-    use crate::ringbuffer::ringbuffer::RingBuffer;
+pub struct RingBuffer<T, const N: usize> 
+where T: Copy
+{
+    buffer: [T; N],
+    head: usize, 
+} 
 
-    #[test]
-    fn get() {
-        const SIZE: usize = 8;
-        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::new(0);
-        for i in 0..SIZE as i32 {
-            buf.put(i);
-        }
-        for i in 0..SIZE {
-            //println!("{}:{}",i, buf.get(i));
-            assert_eq!(buf.get_oldest(i), i as i32);
-        }
-        for i in 0..SIZE {
-            assert_eq!(buf.get_oldest(i+SIZE), i as i32);
+impl<T, const N:usize> RingBuffer<T, N> 
+where T: Copy
+{
+    #[inline(always)]
+    fn wrap_idx(idx: usize) -> usize {
+        idx % N
+    }
+
+    pub fn new(init_value: T) -> Self {
+        RingBuffer {
+            buffer: [init_value; N],
+            head: 0,
         }
     }
 
-    #[test]
-    fn get_reverse() {
-        const SIZE: usize = 8;
-        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::new(0);
-        for i in 0..SIZE as i32 {
-            buf.put(i);
-        }
-        for i in 0..SIZE {
-            //println!("{}:{}",i, buf.get_reverse(i));
-            assert_eq!(buf.get_newest(i), (SIZE-1 - i) as i32);
-        }
+    pub fn put(&mut self, item: T) -> T {
+        use std::mem::replace;
+        self.head = Self::wrap_idx(self.head+1);
+        replace(&mut self.buffer[self.head], item)
     }
 
-    #[test]
-    fn get_either() {
-        const SIZE: usize = 8;
-        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::new(0);
-        for i in 0..SIZE as i32 {
-            buf.put(i);
-        }
-        for i in 0..SIZE as isize {
-            println!("{}:{}",i, buf.get(i));
-            assert_eq!(buf.get(i), i as i32);
-        }
-        for i in -(SIZE as isize)..0 {
-            println!("{}:{}",i, buf.get(i));
-            assert_eq!(buf.get(i), (SIZE as isize + i) as i32);
-        }
+    pub fn get_oldest(&self, idx: usize) -> T {
+        let current_idx = Self::wrap_idx(idx + self.head +1);
+        self.buffer[current_idx]
+    }
+
+    pub fn get_newest(&self, idx: usize) -> T {
+        let idx_wrapped = Self::wrap_idx(idx + self.head + N-1);
+        self.buffer[N-1-idx_wrapped]
+    }
+
+    pub fn get(&self, idx: isize) -> T {
+        let new_idx = usize::wrapping_add_signed(self.head +1, idx);
+        self.buffer[Self::wrap_idx(new_idx)]
     }
 }
