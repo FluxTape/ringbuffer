@@ -1,4 +1,4 @@
-pub mod iterators {
+pub mod into_iter {
     use crate::RingBuffer;
 
     impl<T, const N:usize> IntoIterator for RingBuffer<T, N> 
@@ -46,8 +46,10 @@ pub mod iterators {
             Some(result)
         }
     }
+}
 
-
+pub mod iter {
+    use crate::RingBuffer;
 
     // --------------- non consuming iter
     impl<'a, T, const N:usize> IntoIterator for &'a RingBuffer<T, N> 
@@ -96,12 +98,12 @@ pub mod iterators {
         }
     }
 
-    impl<T, const N:usize> RingBuffer<T, N>
+    impl<T, const N: usize> RingBuffer<T, N>
     where T: Copy 
     {
-        pub fn iter<'a>(&'a self) -> RingBufferIter<'a, T, N> {
+        pub fn iter(&self) -> RingBufferIter<'_, T, N> {
             RingBufferIter {
-                ringbuffer: &self,
+                ringbuffer: self,
                 index_forward: 0,
                 index_backward: N as isize -1
             }

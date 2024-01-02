@@ -103,6 +103,9 @@ mod tests {
         for (i, x) in buf.iter().enumerate() {
             assert_eq!(i as i32, x);
         }
+        for (i, x) in buf.iter().enumerate() {
+            assert_eq!(i as i32, x);
+        }
     }
 
     #[test]
