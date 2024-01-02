@@ -1,4 +1,5 @@
 pub mod into_iter {
+    use std::iter::FusedIterator;
     use crate::RingBuffer;
 
     impl<T, const N:usize> IntoIterator for RingBuffer<T, N> 
@@ -46,9 +47,13 @@ pub mod into_iter {
             Some(result)
         }
     }
+
+    impl<T, const N: usize> FusedIterator for RingBufferIntoIter<T, N>
+    where T: Copy {}
 }
 
 pub mod iter {
+    use std::iter::FusedIterator;
     use crate::RingBuffer;
 
     // --------------- non consuming iter
@@ -72,6 +77,18 @@ pub mod iter {
         ringbuffer: &'a RingBuffer<T, N>,
         index_forward: isize,
         index_backward: isize
+    }
+
+    impl<T, const N: usize> RingBuffer<T, N>
+    where T: Copy 
+    {
+        pub fn iter(&self) -> RingBufferIter<'_, T, N> {
+            RingBufferIter {
+                ringbuffer: self,
+                index_forward: 0,
+                index_backward: N as isize -1
+            }
+        }
     }
 
     impl<'a, T, const N:usize> Iterator for RingBufferIter<'a, T, N>
@@ -98,18 +115,7 @@ pub mod iter {
         }
     }
 
-    impl<T, const N: usize> RingBuffer<T, N>
-    where T: Copy 
-    {
-        pub fn iter(&self) -> RingBufferIter<'_, T, N> {
-            RingBufferIter {
-                ringbuffer: self,
-                index_forward: 0,
-                index_backward: N as isize -1
-            }
-        }
-    }
-
-
+    impl<T, const N: usize> FusedIterator for RingBufferIter<'_, T, N>
+    where T: Copy {}
 
 }
