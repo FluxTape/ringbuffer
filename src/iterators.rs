@@ -9,7 +9,8 @@ pub mod iterators {
         fn into_iter(self) -> Self::IntoIter {
             RingBufferIntoIter {
                 ringbuffer: self,
-                index: 0,
+                index_forward: 0,
+                index_backward: N as isize -1
             }
         }
     }
@@ -18,21 +19,35 @@ pub mod iterators {
     where T: Copy
     {
         ringbuffer: RingBuffer<T, N>,
-        index: usize
+        index_forward: isize,
+        index_backward: isize
     }
 
     impl<T, const N:usize> Iterator for RingBufferIntoIter<T, N>
-    where T: Copy 
+    where T: Copy
     {
         type Item = T;
 
         fn next(&mut self) -> Option<T> {
-            if self.index >= N {return None}
-            let result = self.ringbuffer.get_oldest(self.index);
-            self.index += 1;
+            if self.index_forward > self.index_backward {return None}
+            let result = self.ringbuffer.get_oldest(self.index_forward as usize);
+            self.index_forward += 1;
             Some(result)
         }
     }
+
+    impl<T, const N: usize> DoubleEndedIterator for RingBufferIntoIter<T, N>
+    where T: Copy 
+    {
+        fn next_back(&mut self) -> Option<Self::Item> {
+            if self.index_backward < self.index_forward {return None}
+            let result = self.ringbuffer.get_oldest(self.index_backward as usize);
+            self.index_backward -= 1;
+            Some(result)
+        }
+    }
+
+
 
     // --------------- non consuming iter
     impl<'a, T, const N:usize> IntoIterator for &'a RingBuffer<T, N> 
@@ -43,7 +58,8 @@ pub mod iterators {
         fn into_iter(self) -> Self::IntoIter {
             RingBufferIter {
                 ringbuffer: self,
-                index: 0,
+                index_forward: 0,
+                index_backward: N as isize -1
             }
         }
     }
@@ -52,7 +68,8 @@ pub mod iterators {
     where T: Copy
     {
         ringbuffer: &'a RingBuffer<T, N>,
-        index: usize
+        index_forward: isize,
+        index_backward: isize
     }
 
     impl<'a, T, const N:usize> Iterator for RingBufferIter<'a, T, N>
@@ -61,9 +78,20 @@ pub mod iterators {
         type Item = T;
 
         fn next(&mut self) -> Option<T> {
-            if self.index >= N {return None}
-            let result = self.ringbuffer.get_oldest(self.index);
-            self.index += 1;
+            if self.index_forward > self.index_backward {return None}
+            let result = self.ringbuffer.get_oldest(self.index_forward as usize);
+            self.index_forward += 1;
+            Some(result)
+        }
+    }
+
+    impl<T, const N: usize> DoubleEndedIterator for RingBufferIter<'_, T, N>
+    where T: Copy 
+    {
+        fn next_back(&mut self) -> Option<Self::Item> {
+            if self.index_backward < self.index_forward {return None}
+            let result = self.ringbuffer.get_oldest(self.index_backward as usize);
+            self.index_backward -= 1;
             Some(result)
         }
     }
@@ -74,10 +102,12 @@ pub mod iterators {
         pub fn iter<'a>(&'a self) -> RingBufferIter<'a, T, N> {
             RingBufferIter {
                 ringbuffer: &self,
-                index: 0
+                index_forward: 0,
+                index_backward: N as isize -1
             }
         }
     }
+
 
 
 }

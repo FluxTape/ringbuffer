@@ -50,14 +50,90 @@ mod tests {
     }
 
     #[test]
-    fn iterator() {
+    fn into_iterator() {
         const SIZE: usize = 8;
         let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
         for i in 0..SIZE as i32 {
             buf.put(i);
         }
         for (i, x) in buf.into_iter().enumerate() {
-            assert_eq!(i as i32, x)
+            assert_eq!(i as i32, x);
         }
+    }
+
+    #[test]
+    fn into_back() {
+        const SIZE: usize = 8;
+        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+        for i in 0..SIZE as i32 {
+            buf.put(i);
+        }
+        for (i, x) in buf.into_iter().rev().enumerate() {
+            assert_eq!((SIZE-1-i) as i32, x);
+        }
+    }
+
+    #[test]
+    fn into_front_back() {
+        const SIZE: usize = 8;
+        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+        for i in 0..SIZE as i32 {
+            buf.put(i);
+        }
+        let mut iter = buf.into_iter();
+        assert_eq!(iter.next(), Some(0));
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next_back(), Some(7));
+        assert_eq!(iter.next(), Some(2));
+        assert_eq!(iter.next_back(), Some(6));
+        assert_eq!(iter.next_back(), Some(5));
+        assert_eq!(iter.next(), Some(3));
+        assert_eq!(iter.next(), Some(4));
+        assert_eq!(iter.next_back(), None);
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn iterator() {
+        const SIZE: usize = 8;
+        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+        for i in 0..SIZE as i32 {
+            buf.put(i);
+        }
+        for (i, x) in buf.iter().enumerate() {
+            assert_eq!(i as i32, x);
+        }
+    }
+
+    #[test]
+    fn iterator_back() {
+        const SIZE: usize = 8;
+        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+        for i in 0..SIZE as i32 {
+            buf.put(i);
+        }
+        for (i, x) in buf.iter().rev().enumerate() {
+            assert_eq!((SIZE-1-i) as i32, x);
+        }
+    }
+
+    #[test]
+    fn iterator_front_back() {
+        const SIZE: usize = 8;
+        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+        for i in 0..SIZE as i32 {
+            buf.put(i);
+        }
+        let mut iter = buf.iter();
+        assert_eq!(iter.next(), Some(0));
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next_back(), Some(7));
+        assert_eq!(iter.next(), Some(2));
+        assert_eq!(iter.next_back(), Some(6));
+        assert_eq!(iter.next_back(), Some(5));
+        assert_eq!(iter.next(), Some(3));
+        assert_eq!(iter.next(), Some(4));
+        assert_eq!(iter.next_back(), None);
+        assert_eq!(iter.next(), None);
     }
 }
