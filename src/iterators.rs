@@ -89,6 +89,11 @@ pub mod iter {
                 index_backward: N as isize -1
             }
         }
+
+        pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut T> {
+            let (l, r) = self.buffer.split_at_mut(self.head+1);
+            r.as_mut().iter_mut().chain(l.as_mut().iter_mut())
+        }
     }
 
     impl<'a, T, const N:usize> Iterator for RingBufferIter<'a, T, N>

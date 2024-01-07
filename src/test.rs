@@ -139,4 +139,25 @@ mod tests {
         assert_eq!(iter.next_back(), None);
         assert_eq!(iter.next(), None);
     }
+
+    #[test]
+    fn iter_mut() {
+        const SIZE: usize = 8;
+        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+        for i in 0..(SIZE+2) as i32 {
+            buf.put(i);
+        }
+        assert_eq!(buf.head, 2);
+        for i in 0..SIZE {
+            //println!("{}:{}",i, buf.get(i));
+            assert_eq!(buf.get_oldest(i), (i+2) as i32);
+        }
+        for (i, e) in buf.iter_mut().enumerate() {
+            assert_eq!((i+2) as i32, *e);
+            *e -= 2;
+        }
+        for (i, e) in buf.iter().enumerate() {
+            assert_eq!(i as i32, e);
+        }
+    }
 }
