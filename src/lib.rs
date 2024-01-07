@@ -57,8 +57,7 @@ where T: Copy
     }
 
     pub fn get_newest(&self, idx: usize) -> T {
-        let idx_wrapped = Self::wrap_idx(idx + self.head + N-1);
-        self.buffer[N-1-idx_wrapped]
+        self.get(-(idx as isize) -1)
     }
 
     pub fn get(&self, idx: isize) -> T {
