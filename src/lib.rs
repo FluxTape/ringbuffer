@@ -44,7 +44,7 @@ where T: Default + Copy
 impl<T, const N:usize> RingBuffer<T, N> 
 where T: Copy
 {
-    pub fn new(init_value: T) -> Self {
+    pub const fn new(init_value: T) -> Self {
         RingBuffer { 
             buffer: [init_value; N], 
             head: 0 
