@@ -35,6 +35,10 @@ pub mod into_iter {
             self.index_forward += 1;
             Some(result)
         }
+
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            (N, Some(N))
+        }
     }
 
     impl<T, const N: usize> DoubleEndedIterator for RingBufferIntoIter<T, N>
@@ -49,6 +53,9 @@ pub mod into_iter {
     }
 
     impl<T, const N: usize> FusedIterator for RingBufferIntoIter<T, N>
+    where T: Copy {}
+
+    impl<T, const N: usize> ExactSizeIterator for RingBufferIntoIter<T, N>
     where T: Copy {}
 }
 
@@ -107,6 +114,10 @@ pub mod iter {
             self.index_forward += 1;
             Some(result)
         }
+
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            (N, Some(N))
+        }
     }
 
     impl<T, const N: usize> DoubleEndedIterator for RingBufferIter<'_, T, N>
@@ -121,6 +132,9 @@ pub mod iter {
     }
 
     impl<T, const N: usize> FusedIterator for RingBufferIter<'_, T, N>
+    where T: Copy {}
+
+    impl<T, const N: usize> ExactSizeIterator for RingBufferIter<'_, T, N>
     where T: Copy {}
 
 }

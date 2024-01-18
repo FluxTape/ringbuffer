@@ -4,6 +4,28 @@ mod tests {
     //use crate::iterators::iterators::*;
 
     #[test]
+    fn size() {
+        const SIZE: usize = 8;
+        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+        {
+            let iter = buf.iter();
+            assert_eq!(iter.size_hint(), (SIZE, Some(SIZE)));
+            assert_eq!(iter.len(), SIZE);
+        }
+        {
+            let iter_mut = buf.iter_mut();
+            assert_eq!(iter_mut.size_hint(), (SIZE, Some(SIZE)));
+            // no exact size iter for iter_mut 
+        }
+        {
+            let into_iter = buf.into_iter();
+            assert_eq!(into_iter.size_hint(), (SIZE, Some(SIZE)));
+            assert_eq!(into_iter.len(), SIZE);
+        }
+        
+    }
+
+    #[test]
     fn get() {
         const SIZE: usize = 8;
         for offset in 0..SIZE {
