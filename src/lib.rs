@@ -15,8 +15,9 @@ impl<T, const N:usize> RingBuffer<T, N> {
 
     pub fn put(&mut self, item: T) -> T {
         use std::mem::replace;
+        let old = replace(&mut self.buffer[self.head], item);
         self.head = Self::wrap_idx(self.head+1);
-        replace(&mut self.buffer[self.head], item)
+        old
     }
 }
 
@@ -25,7 +26,7 @@ where T: Default
 {
     pub fn get_owned(&mut self, idx: isize) -> T {
         use std::mem::take;
-        let new_idx = usize::wrapping_add_signed(self.head +1, idx);
+        let new_idx = usize::wrapping_add_signed(self.head, idx);
         take(&mut self.buffer[Self::wrap_idx(new_idx)])
     }
 }
@@ -44,6 +45,9 @@ where T: Default + Copy
 impl<T, const N:usize> RingBuffer<T, N> 
 where T: Copy
 {
+    const MID: usize = if N != 0 {(usize::MAX/2) - (usize::MAX/2)%N} else {0};
+    const UPPER: usize = if N!=0 {usize::MAX - N - (usize::MAX%N)} else {0};
+
     pub const fn new(init_value: T) -> Self {
         RingBuffer { 
             buffer: [init_value; N], 
@@ -52,16 +56,17 @@ where T: Copy
     }
 
     pub fn get_oldest(&self, idx: usize) -> T {
-        let current_idx = Self::wrap_idx(idx + self.head +1);
+        let current_idx = Self::wrap_idx(idx + self.head);
         self.buffer[current_idx]
     }
 
     pub fn get_newest(&self, idx: usize) -> T {
-        self.get(-(idx as isize) -1)
+        let current_idx = Self::wrap_idx(Self::UPPER + self.head -1 - idx);
+        self.buffer[current_idx]
     }
 
     pub fn get(&self, idx: isize) -> T {
-        let new_idx = usize::wrapping_add_signed(self.head +1, idx);
+        let new_idx = usize::wrapping_add_signed(self.head + Self::MID, idx);
         self.buffer[Self::wrap_idx(new_idx)]
     }
 }

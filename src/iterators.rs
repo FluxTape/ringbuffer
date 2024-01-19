@@ -98,7 +98,7 @@ pub mod iter {
         }
 
         pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut T> {
-            let (l, r) = self.buffer.split_at_mut(self.head+1);
+            let (l, r) = self.buffer.split_at_mut(self.head);
             r.as_mut().iter_mut().chain(l.as_mut().iter_mut())
         }
     }

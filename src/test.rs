@@ -5,76 +5,92 @@ mod tests {
 
     #[test]
     fn size() {
-        const SIZE: usize = 8;
-        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
-        {
-            let iter = buf.iter();
-            assert_eq!(iter.size_hint(), (SIZE, Some(SIZE)));
-            assert_eq!(iter.len(), SIZE);
+        fn t<const SIZE: usize>() {
+            //const SIZE: usize = 8;
+            dbg!(SIZE);
+            let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+            {
+                let iter = buf.iter();
+                assert_eq!(iter.size_hint(), (SIZE, Some(SIZE)));
+                assert_eq!(iter.len(), SIZE);
+            }
+            {
+                let iter_mut = buf.iter_mut();
+                assert_eq!(iter_mut.size_hint(), (SIZE, Some(SIZE)));
+                // no exact size iter for iter_mut 
+            }
+            {
+                let into_iter = buf.into_iter();
+                assert_eq!(into_iter.size_hint(), (SIZE, Some(SIZE)));
+                assert_eq!(into_iter.len(), SIZE);
+            }
+            
         }
-        {
-            let iter_mut = buf.iter_mut();
-            assert_eq!(iter_mut.size_hint(), (SIZE, Some(SIZE)));
-            // no exact size iter for iter_mut 
-        }
-        {
-            let into_iter = buf.into_iter();
-            assert_eq!(into_iter.size_hint(), (SIZE, Some(SIZE)));
-            assert_eq!(into_iter.len(), SIZE);
-        }
-        
+        t::<0>(); t::<1>(); t::<2>(); t::<7>(); t::<8>(); t::<9>();
     }
 
+    
     #[test]
     fn get() {
-        const SIZE: usize = 8;
-        for offset in 0..SIZE {
-            let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
-            for i in 0..(SIZE+offset) as i32 {
-                buf.put(i);
-            }
-            for i in 0..SIZE {
-                //println!("{}:{}",i, buf.get(i as isize));
-                assert_eq!(buf.get_oldest(i), (i+offset) as i32);
-            }
-            for i in 0..SIZE {
-                assert_eq!(buf.get_oldest(i+SIZE), (i+offset) as i32);
+        fn t<const SIZE: usize>() {
+            for offset in 0..SIZE {
+                let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+                for i in 0..(SIZE+offset) as i32 {
+                    buf.put(i);
+                }
+                for i in 0..SIZE {
+                    //println!("{}:{}",i, buf.get(i as isize));
+                    assert_eq!(buf.get_oldest(i), (i+offset) as i32);
+                }
+                for i in 0..SIZE {
+                    assert_eq!(buf.get_oldest(i+SIZE), (i+offset) as i32);
+                }
             }
         }
+        t::<0>(); t::<1>(); t::<2>(); t::<7>(); t::<8>(); t::<9>();
     }
+    
 
     #[test]
     fn get_reverse() {
-        const SIZE: usize = 8;
-        for offset in 0..SIZE {
-            let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
-            for i in 0..(SIZE+offset) as i32 {
-                buf.put(i);
-            }
-            for i in 0..SIZE {
-                //println!("{}:{}",i, buf.get_newest(i));
-                assert_eq!(buf.get_newest(i), (SIZE+offset-1 - i) as i32);
-            }
-        }  
+        fn t<const SIZE: usize>() {
+            dbg!(SIZE);
+            for offset in 0..SIZE {
+                dbg!(offset);
+                let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+                for i in 0..(SIZE+offset) as i32 {
+                    buf.put(i);
+                }
+                dbg!(&buf);
+                for i in 0..SIZE {
+                    println!("{}:{}",i, buf.get_newest(i));
+                    assert_eq!(buf.get_newest(i), (SIZE+offset-1 - i) as i32);
+                }
+            }  
+        }
+        t::<0>(); t::<1>(); t::<2>(); t::<7>(); t::<8>(); t::<9>();      
     }
 
     #[test]
     fn get_either() {
-        const SIZE: usize = 8;
-        for offset in 0..SIZE {
-            let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
-            for i in 0..(SIZE+offset) as i32 {
-                buf.put(i);
-            }
-            for i in 0..SIZE as isize {
-                //println!("{}:{}",i, buf.get(i));
-                assert_eq!(buf.get(i), i as i32 + offset as i32);
-            }
-            for i in -(SIZE as isize)..0 {
-                //println!("{}:{}",i, buf.get(i));
-                assert_eq!(buf.get(i), ((SIZE+offset) as isize + i) as i32);
+        fn t<const SIZE: usize>() {
+            dbg!(SIZE);
+            for offset in 0..SIZE {
+                let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+                for i in 0..(SIZE+offset) as i32 {
+                    buf.put(i);
+                }
+                for i in 0..SIZE as isize {
+                    //println!("{}:{}",i, buf.get(i));
+                    assert_eq!(buf.get(i), i as i32 + offset as i32);
+                }
+                for i in -(SIZE as isize)..0 {
+                    //println!("{}:{}",i, buf.get(i));
+                    assert_eq!(buf.get(i), ((SIZE+offset) as isize + i) as i32);
+                }
             }
         }
+        t::<0>(); t::<1>(); t::<2>(); t::<7>(); t::<8>(); t::<9>();      
     }
 
     #[test]
