@@ -11,7 +11,7 @@ pub mod into_iter {
             RingBufferIntoIter {
                 ringbuffer: self,
                 index_forward: 0,
-                index_backward: N as isize -1
+                index_backward: N
             }
         }
     }
@@ -20,8 +20,8 @@ pub mod into_iter {
     where T: Copy
     {
         ringbuffer: RingBuffer<T, N>,
-        index_forward: isize,
-        index_backward: isize
+        index_forward: usize,
+        index_backward: usize
     }
 
     impl<T, const N:usize> Iterator for RingBufferIntoIter<T, N>
@@ -30,8 +30,8 @@ pub mod into_iter {
         type Item = T;
 
         fn next(&mut self) -> Option<T> {
-            if self.index_forward > self.index_backward {return None}
-            let result = self.ringbuffer.get_oldest(self.index_forward as usize);
+            if self.index_forward >= self.index_backward {return None}
+            let result = self.ringbuffer.get_oldest(self.index_forward);
             self.index_forward += 1;
             Some(result)
         }
@@ -45,9 +45,9 @@ pub mod into_iter {
     where T: Copy 
     {
         fn next_back(&mut self) -> Option<Self::Item> {
-            if self.index_backward < self.index_forward {return None}
-            let result = self.ringbuffer.get_oldest(self.index_backward as usize);
+            if self.index_backward <= self.index_forward {return None}
             self.index_backward -= 1;
+            let result = self.ringbuffer.get_oldest(self.index_backward);
             Some(result)
         }
     }
@@ -73,7 +73,7 @@ pub mod iter {
             RingBufferIter {
                 ringbuffer: self,
                 index_forward: 0,
-                index_backward: N as isize -1
+                index_backward: N
             }
         }
     }
@@ -82,8 +82,8 @@ pub mod iter {
     where T: Copy
     {
         ringbuffer: &'a RingBuffer<T, N>,
-        index_forward: isize,
-        index_backward: isize
+        index_forward: usize,
+        index_backward: usize
     }
 
     impl<T, const N: usize> RingBuffer<T, N>
@@ -93,7 +93,7 @@ pub mod iter {
             RingBufferIter {
                 ringbuffer: self,
                 index_forward: 0,
-                index_backward: N as isize -1
+                index_backward: N
             }
         }
 
@@ -109,8 +109,8 @@ pub mod iter {
         type Item = T;
 
         fn next(&mut self) -> Option<T> {
-            if self.index_forward > self.index_backward {return None}
-            let result = self.ringbuffer.get_oldest(self.index_forward as usize);
+            if self.index_forward >= self.index_backward {return None}
+            let result = self.ringbuffer.get_oldest(self.index_forward);
             self.index_forward += 1;
             Some(result)
         }
@@ -124,9 +124,9 @@ pub mod iter {
     where T: Copy 
     {
         fn next_back(&mut self) -> Option<Self::Item> {
-            if self.index_backward < self.index_forward {return None}
-            let result = self.ringbuffer.get_oldest(self.index_backward as usize);
+            if self.index_backward <= self.index_forward {return None}
             self.index_backward -= 1;
+            let result = self.ringbuffer.get_oldest(self.index_backward);
             Some(result)
         }
     }
