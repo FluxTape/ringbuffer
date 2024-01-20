@@ -3,10 +3,29 @@ mod tests {
     use crate::RingBuffer;
     //use crate::iterators::iterators::*;
 
+    #[macro_export]
+    macro_rules! test_variants {
+        (  $t:ident ) => {
+            $t::<0>();
+            $t::<1>();
+            $t::<2>();
+            $t::<3>();
+            $t::<4>();
+            $t::<5>();
+            $t::<6>();
+            $t::<7>();
+            $t::<8>();
+            $t::<9>();
+            $t::<10>();
+            $t::<11>();
+            $t::<12>();
+        };
+    }
+
     #[test]
     fn size() {
         fn t<const SIZE: usize>() {
-            //const SIZE: usize = 8;
+            //dbg!(SIZE);
             let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
             {
                 let iter = buf.iter();
@@ -24,12 +43,7 @@ mod tests {
                 assert_eq!(into_iter.len(), SIZE);
             }
         }
-        t::<0>();
-        t::<1>();
-        t::<2>();
-        t::<7>();
-        t::<8>();
-        t::<9>();
+        test_variants!(t);
     }
 
     #[test]
@@ -49,12 +63,7 @@ mod tests {
                 }
             }
         }
-        t::<0>();
-        t::<1>();
-        t::<2>();
-        t::<7>();
-        t::<8>();
-        t::<9>();
+        test_variants!(t);
     }
 
     #[test]
@@ -74,12 +83,7 @@ mod tests {
                 }
             }
         }
-        t::<0>();
-        t::<1>();
-        t::<2>();
-        t::<7>();
-        t::<8>();
-        t::<9>();
+        test_variants!(t);
     }
 
     #[test]
@@ -101,12 +105,7 @@ mod tests {
                 }
             }
         }
-        t::<0>();
-        t::<1>();
-        t::<2>();
-        t::<7>();
-        t::<8>();
-        t::<9>();
+        test_variants!(t);
     }
 
     #[test]
@@ -122,12 +121,7 @@ mod tests {
                 }
             }
         }
-        t::<0>();
-        t::<1>();
-        t::<2>();
-        t::<7>();
-        t::<8>();
-        t::<9>();
+        test_variants!(t);
     }
 
     #[test]
@@ -143,12 +137,7 @@ mod tests {
                 }
             }
         }
-        t::<0>();
-        t::<1>();
-        t::<2>();
-        t::<7>();
-        t::<8>();
-        t::<9>();
+        test_variants!(t);
     }
 
     #[test]
@@ -187,12 +176,7 @@ mod tests {
                 }
             }
         }
-        t::<0>();
-        t::<1>();
-        t::<2>();
-        t::<7>();
-        t::<8>();
-        t::<9>();
+        test_variants!(t);
     }
 
     #[test]
@@ -208,12 +192,7 @@ mod tests {
                 }
             }
         }
-        t::<0>();
-        t::<1>();
-        t::<2>();
-        t::<7>();
-        t::<8>();
-        t::<9>();
+        test_variants!(t);
     }
 
     #[test]
@@ -257,11 +236,6 @@ mod tests {
                 }
             }
         }
-        t::<0>();
-        t::<1>();
-        t::<2>();
-        t::<7>();
-        t::<8>();
-        t::<9>();
+        test_variants!(t);
     }
 }
