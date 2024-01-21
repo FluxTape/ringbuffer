@@ -94,24 +94,6 @@ pub mod iter {
         index_backward: usize,
     }
 
-    impl<T, const N: usize> RingBuffer<T, N>
-    where
-        T: Copy,
-    {
-        pub fn iter(&self) -> RingBufferIter<'_, T, N> {
-            RingBufferIter {
-                ringbuffer: self,
-                index_forward: 0,
-                index_backward: N,
-            }
-        }
-
-        pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut T> {
-            let (l, r) = self.buffer.split_at_mut(self.head);
-            r.as_mut().iter_mut().chain(l.as_mut().iter_mut())
-        }
-    }
-
     impl<'a, T, const N: usize> Iterator for RingBufferIter<'a, T, N>
     where
         T: Copy,
@@ -146,7 +128,94 @@ pub mod iter {
         }
     }
 
+    impl<T, const N: usize> RingBuffer<T, N>
+    where
+        T: Copy,
+    {
+        pub fn iter(&self) -> RingBufferIter<'_, T, N> {
+            RingBufferIter {
+                ringbuffer: self,
+                index_forward: 0,
+                index_backward: N,
+            }
+        }
+    }
+
     impl<T, const N: usize> FusedIterator for RingBufferIter<'_, T, N> where T: Copy {}
 
     impl<T, const N: usize> ExactSizeIterator for RingBufferIter<'_, T, N> where T: Copy {}
+}
+
+pub mod iter_mut {
+    use crate::RingBuffer;
+    use std::iter::Chain;
+    use std::iter::FusedIterator;
+    use std::slice::IterMut;
+
+    // --------------- non consuming iter
+    pub struct RingBufferIterMut<'a, T, const N: usize>
+    where
+        T: Copy,
+    {
+        iter: Chain<IterMut<'a, T>, IterMut<'a, T>>,
+    }
+
+    impl<'a, T, const N: usize> RingBufferIterMut<'a, T, N>
+    where
+        T: Copy,
+    {
+        pub fn new(buf: &'a mut RingBuffer<T, N>) -> Self {
+            let (l, r) = buf.buffer.split_at_mut(buf.head);
+            let iter = r.as_mut().iter_mut().chain(l.as_mut().iter_mut());
+            RingBufferIterMut { iter }
+        }
+    }
+
+    impl<'a, T, const N: usize> IntoIterator for &'a mut RingBuffer<T, N>
+    where
+        T: Copy,
+    {
+        type Item = &'a mut T;
+        type IntoIter = RingBufferIterMut<'a, T, N>;
+        fn into_iter(self) -> Self::IntoIter {
+            RingBufferIterMut::new(self)
+        }
+    }
+
+    impl<'a, T, const N: usize> Iterator for RingBufferIterMut<'a, T, N>
+    where
+        T: Copy,
+    {
+        type Item = &'a mut T;
+
+        fn next(&mut self) -> Option<&'a mut T> {
+            self.iter.next()
+        }
+
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            (N, Some(N))
+        }
+    }
+
+    impl<T, const N: usize> DoubleEndedIterator for RingBufferIterMut<'_, T, N>
+    where
+        T: Copy,
+    {
+        fn next_back(&mut self) -> Option<Self::Item> {
+            self.iter.next_back()
+        }
+    }
+
+    impl<T, const N: usize> RingBuffer<T, N>
+    where
+        T: Copy,
+    {
+        pub fn iter_mut(&mut self) -> RingBufferIterMut<'_, T, N> {
+            RingBufferIterMut::new(self)
+        }
+    }
+
+    impl<T, const N: usize> FusedIterator for RingBufferIterMut<'_, T, N> where T: Copy {}
+
+    impl<T, const N: usize> ExactSizeIterator for RingBufferIterMut<'_, T, N> where T: Copy {}
 }

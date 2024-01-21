@@ -19,6 +19,15 @@ mod tests {
             $t::<10>();
             $t::<11>();
             $t::<12>();
+            $t::<13>();
+            $t::<14>();
+            $t::<15>();
+            $t::<16>();
+            $t::<17>();
+            $t::<31>();
+            $t::<32>();
+            $t::<33>();
+            $t::<64>();
         };
     }
 
@@ -35,7 +44,7 @@ mod tests {
             {
                 let iter_mut = buf.iter_mut();
                 assert_eq!(iter_mut.size_hint(), (SIZE, Some(SIZE)));
-                // no exact size iter for iter_mut
+                assert_eq!(iter_mut.len(), SIZE);
             }
             {
                 let into_iter = buf.into_iter();
@@ -106,6 +115,19 @@ mod tests {
             }
         }
         test_variants!(t);
+    }
+
+    #[test]
+    fn get_either_wrong_idx() {
+        //const tmp: usize = usize::wrapping_add_signed(usize::MAX, isize::MIN);
+        const SIZE1: usize = 3;
+        //const tmp2: usize = tmp - tmp % SIZE1;
+        //dbg!(tmp2);
+        let mut buf: RingBuffer<i32, SIZE1> = RingBuffer::default();
+        for i in 0..SIZE1 as i32 {
+            buf.put(i);
+        }
+        dbg!(buf.get(isize::MIN));
     }
 
     #[test]
@@ -237,5 +259,25 @@ mod tests {
             }
         }
         test_variants!(t);
+    }
+
+    #[test]
+    fn iter_mut_front_back() {
+        const SIZE: usize = 8;
+        let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+        for i in 0..SIZE as i32 {
+            buf.put(i);
+        }
+        let mut iter = buf.iter_mut();
+        assert_eq!(iter.next(), Some(&mut 0));
+        assert_eq!(iter.next(), Some(&mut 1));
+        assert_eq!(iter.next_back(), Some(&mut 7));
+        assert_eq!(iter.next(), Some(&mut 2));
+        assert_eq!(iter.next_back(), Some(&mut 6));
+        assert_eq!(iter.next_back(), Some(&mut 5));
+        assert_eq!(iter.next(), Some(&mut 3));
+        assert_eq!(iter.next(), Some(&mut 4));
+        assert_eq!(iter.next_back(), None);
+        assert_eq!(iter.next(), None);
     }
 }

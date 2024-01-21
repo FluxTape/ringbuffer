@@ -67,16 +67,17 @@ where
     }
 
     pub fn get_oldest(&self, idx: usize) -> T {
-        let current_idx = Self::wrap_idx(idx + self.head);
-        self.buffer[current_idx]
+        let wrapped_idx = Self::wrap_idx(idx + self.head);
+        self.buffer[wrapped_idx]
     }
 
     pub fn get_newest(&self, idx: usize) -> T {
-        let current_idx = Self::wrap_idx(Self::UPPER + self.head - 1 - idx);
-        self.buffer[current_idx]
+        let wrapped_idx = Self::wrap_idx(Self::UPPER + self.head - 1 - idx);
+        self.buffer[wrapped_idx]
     }
 
     pub fn get(&self, idx: isize) -> T {
+        // may result in wrong index if idx is near isize::MIN and N is not a power of 2
         let new_idx = usize::wrapping_add_signed(self.head + Self::MID, idx);
         self.buffer[Self::wrap_idx(new_idx)]
     }
