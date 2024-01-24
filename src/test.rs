@@ -118,16 +118,46 @@ mod tests {
     }
 
     #[test]
+    // checks expected wrong behaviour of get()
     fn get_either_wrong_idx() {
-        //const tmp: usize = usize::wrapping_add_signed(usize::MAX, isize::MIN);
-        const SIZE1: usize = 3;
-        //const tmp2: usize = tmp - tmp % SIZE1;
-        //dbg!(tmp2);
-        let mut buf: RingBuffer<i32, SIZE1> = RingBuffer::default();
-        for i in 0..SIZE1 as i32 {
-            buf.put(i);
+        fn get_big_mid(size: usize) -> u128 {
+            (u128::MAX / 2) - (u128::MAX / 2) % (size as u128)
         }
-        dbg!(buf.get(isize::MIN));
+        // assumes buf.head = 0
+        fn get_correct_idx<const SIZE: usize>(idx: isize) -> usize {
+            let big_mid = get_big_mid(SIZE);
+            let new_idx = u128::wrapping_add_signed(big_mid, idx as i128);
+            (new_idx % (SIZE as u128)) as usize
+        }
+        fn is_power_of_2(x: usize) -> bool {
+            usize::count_ones(x) == 1
+        }
+
+        fn t<const SIZE: usize>() {
+            if SIZE == 0 {
+                return;
+            }
+            let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+            for i in 0..SIZE as i32 {
+                buf.put(i);
+            }
+            assert_eq!(buf.head, 0);
+            for i in 0..SIZE {
+                assert_eq!(buf.buffer[i], i as i32)
+            }
+            if is_power_of_2(SIZE) {
+                assert_eq!(
+                    buf.get(isize::MIN),
+                    buf.buffer[get_correct_idx::<SIZE>(isize::MIN)]
+                );
+            } else {
+                assert_ne!(
+                    buf.get(isize::MIN),
+                    buf.buffer[get_correct_idx::<SIZE>(isize::MIN)]
+                );
+            }
+        }
+        test_variants!(t);
     }
 
     #[test]
@@ -279,5 +309,34 @@ mod tests {
         assert_eq!(iter.next(), Some(&mut 4));
         assert_eq!(iter.next_back(), None);
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn from_iter() {
+        const SIZE1: usize = 7;
+        const SIZE2: usize = 9;
+        const SIZE3: usize = 3;
+
+        let mut buf1: RingBuffer<i32, SIZE1> = RingBuffer::default();
+        for i in 0..SIZE1 as i32 {
+            buf1.put(i);
+        }
+        for (i, x) in buf1.iter().enumerate() {
+            assert_eq!(i as i32, x);
+        }
+        let buf2: RingBuffer<i32, SIZE2> = RingBuffer::from_iter(buf1);
+        assert_eq!(buf2.buffer, [0, 1, 2, 3, 4, 5, 6, 0, 0]);
+        assert_eq!(buf2.get_oldest(0), 0);
+        for i in 0..SIZE1 {
+            assert_eq!(buf2.get_newest(i), (SIZE1 - 1 - i) as i32);
+        }
+        for i in SIZE1..SIZE2 {
+            assert_eq!(buf2.get_newest(i), i32::default());
+        }
+
+        let buf3: RingBuffer<i32, SIZE3> = RingBuffer::from_iter(buf2);
+        assert_eq!(buf3.get_newest(0), 6);
+        assert_eq!(buf3.get_newest(1), 5);
+        assert_eq!(buf3.get_newest(2), 4);
     }
 }

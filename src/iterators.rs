@@ -153,12 +153,9 @@ pub mod iter_mut {
     use std::slice::IterMut;
 
     // --------------- non consuming iter
-    pub struct RingBufferIterMut<'a, T, const N: usize>
-    where
-        T: Copy,
-    {
-        iter: Chain<IterMut<'a, T>, IterMut<'a, T>>,
-    }
+    pub struct RingBufferIterMut<'a, T: Copy, const N: usize>(
+        Chain<IterMut<'a, T>, IterMut<'a, T>>,
+    );
 
     impl<'a, T, const N: usize> RingBufferIterMut<'a, T, N>
     where
@@ -167,7 +164,7 @@ pub mod iter_mut {
         pub fn new(buf: &'a mut RingBuffer<T, N>) -> Self {
             let (l, r) = buf.buffer.split_at_mut(buf.head);
             let iter = r.as_mut().iter_mut().chain(l.as_mut().iter_mut());
-            RingBufferIterMut { iter }
+            RingBufferIterMut(iter)
         }
     }
 
@@ -189,7 +186,7 @@ pub mod iter_mut {
         type Item = &'a mut T;
 
         fn next(&mut self) -> Option<&'a mut T> {
-            self.iter.next()
+            self.0.next()
         }
 
         fn size_hint(&self) -> (usize, Option<usize>) {
@@ -202,7 +199,7 @@ pub mod iter_mut {
         T: Copy,
     {
         fn next_back(&mut self) -> Option<Self::Item> {
-            self.iter.next_back()
+            self.0.next_back()
         }
     }
 
@@ -218,4 +215,24 @@ pub mod iter_mut {
     impl<T, const N: usize> FusedIterator for RingBufferIterMut<'_, T, N> where T: Copy {}
 
     impl<T, const N: usize> ExactSizeIterator for RingBufferIterMut<'_, T, N> where T: Copy {}
+}
+
+mod from_iter {
+    use crate::RingBuffer;
+
+    impl<T, const N: usize> FromIterator<T> for RingBuffer<T, N>
+    where
+        T: Copy + Default,
+    {
+        fn from_iter<A: IntoIterator<Item = T>>(iter: A) -> Self {
+            let mut new_buf: RingBuffer<T, N> = RingBuffer::default();
+            let iterator = iter.into_iter();
+            let (min, _) = iterator.size_hint();
+            let to_skip = usize::saturating_sub(min, N);
+            for item in iterator.skip(to_skip) {
+                new_buf.put(item);
+            }
+            new_buf
+        }
+    }
 }
