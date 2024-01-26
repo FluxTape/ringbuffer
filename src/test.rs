@@ -146,11 +146,13 @@ mod tests {
                 assert_eq!(buf.buffer[i], i as i32)
             }
             if is_power_of_2(SIZE) {
+                // correct if SIZE is a power of two
                 assert_eq!(
                     buf.get(isize::MIN),
                     buf.buffer[get_correct_idx::<SIZE>(isize::MIN)]
                 );
             } else {
+                // wrong otherwise
                 assert_ne!(
                     buf.get(isize::MIN),
                     buf.buffer[get_correct_idx::<SIZE>(isize::MIN)]
