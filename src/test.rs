@@ -341,4 +341,112 @@ mod tests {
         assert_eq!(buf3.get_newest(1), 5);
         assert_eq!(buf3.get_newest(2), 4);
     }
+
+    #[test]
+    fn nth() {
+        fn t<const SIZE: usize>() {
+            for offset in 0..SIZE {
+                let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+                for i in 0..(SIZE + offset) as i32 {
+                    buf.put(i);
+                }
+
+                let mut iter = buf.iter();
+                for i in 0..(SIZE as f64).sqrt() as usize {
+                    let idx: usize = (1..=i + 1).sum::<usize>() - 1;
+                    assert_eq!(iter.nth(i), Some((idx + offset) as i32));
+                }
+                let mut iter = buf.iter_mut();
+                for i in 0..(SIZE as f64).sqrt() as usize {
+                    let idx: usize = (1..=i + 1).sum::<usize>() - 1;
+                    assert_eq!(iter.nth(i), Some((idx + offset) as i32).as_mut());
+                }
+                let mut iter = buf.into_iter();
+                for i in 0..(SIZE as f64).sqrt() as usize {
+                    let idx: usize = (1..=i + 1).sum::<usize>() - 1;
+                    assert_eq!(iter.nth(i), Some((idx + offset) as i32));
+                }
+            }
+        }
+        test_variants!(t);
+    }
+
+    #[test]
+    fn skip() {
+        fn t<const SIZE: usize>() {
+            for offset in 0..SIZE {
+                let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+                for i in 0..SIZE as i32 {
+                    buf.put(i - offset as i32);
+                }
+                let mut iter = buf.iter().skip(offset);
+                for i in 0..(SIZE - offset) as i32 {
+                    assert_eq!(iter.next(), Some(i));
+                }
+                let mut iter = buf.iter_mut().skip(offset);
+                for i in 0..(SIZE - offset) as i32 {
+                    let mut i2 = i;
+                    assert_eq!(iter.next(), Some(&mut i2));
+                }
+                let mut iter = buf.into_iter().skip(offset);
+                for i in 0..(SIZE - offset) as i32 {
+                    assert_eq!(iter.next(), Some(i));
+                }
+            }
+        }
+        test_variants!(t);
+    }
+
+    #[test]
+    fn nth_back() {
+        fn t<const SIZE: usize>() {
+            for offset in 0..SIZE {
+                let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+                for i in 0..(SIZE + offset) as i32 {
+                    buf.put(i);
+                }
+
+                let mut iter = buf.iter();
+                for i in 0..(SIZE as f64).sqrt() as usize {
+                    let idx: usize = (1..=i + 1).sum::<usize>() - 1;
+                    assert_eq!(iter.nth_back(i), Some((SIZE + offset - 1 - idx) as i32));
+                }
+                let mut iter = buf.iter_mut();
+                for i in 0..(SIZE as f64).sqrt() as usize {
+                    let idx: usize = (1..=i + 1).sum::<usize>() - 1;
+                    assert_eq!(
+                        iter.nth_back(i),
+                        Some((SIZE + offset - 1 - idx) as i32).as_mut()
+                    );
+                }
+                let mut iter = buf.into_iter();
+                for i in 0..(SIZE as f64).sqrt() as usize {
+                    let idx: usize = (1..=i + 1).sum::<usize>() - 1;
+                    assert_eq!(iter.nth_back(i), Some((SIZE + offset - 1 - idx) as i32));
+                }
+            }
+        }
+        test_variants!(t);
+    }
+
+    #[test]
+    fn skip_back() {
+        fn t<const SIZE: usize>() {
+            for offset in 0..SIZE {
+                let mut buf: RingBuffer<i32, SIZE> = RingBuffer::default();
+                for i in (0..SIZE as i32).rev() {
+                    buf.put(i - offset as i32);
+                }
+                let mut iter = buf.iter().rev().skip(offset);
+                for i in 0..(SIZE - offset) as i32 {
+                    assert_eq!(iter.next(), Some(i));
+                }
+                let mut iter = buf.into_iter().rev().skip(offset);
+                for i in 0..(SIZE - offset) as i32 {
+                    assert_eq!(iter.next(), Some(i));
+                }
+            }
+        }
+        test_variants!(t);
+    }
 }

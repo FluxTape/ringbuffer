@@ -32,7 +32,7 @@ pub mod into_iter {
     {
         type Item = T;
 
-        fn next(&mut self) -> Option<T> {
+        fn next(&mut self) -> Option<Self::Item> {
             if self.index_forward >= self.index_backward {
                 return None;
             }
@@ -43,6 +43,11 @@ pub mod into_iter {
 
         fn size_hint(&self) -> (usize, Option<usize>) {
             (N, Some(N))
+        }
+
+        fn nth(&mut self, n: usize) -> Option<Self::Item> {
+            self.index_forward += n;
+            self.next()
         }
     }
 
@@ -57,6 +62,11 @@ pub mod into_iter {
             self.index_backward -= 1;
             let result = self.ringbuffer.get_oldest(self.index_backward);
             Some(result)
+        }
+
+        fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+            self.index_backward -= n;
+            self.next_back()
         }
     }
 
@@ -100,7 +110,7 @@ pub mod iter {
     {
         type Item = T;
 
-        fn next(&mut self) -> Option<T> {
+        fn next(&mut self) -> Option<Self::Item> {
             if self.index_forward >= self.index_backward {
                 return None;
             }
@@ -111,6 +121,11 @@ pub mod iter {
 
         fn size_hint(&self) -> (usize, Option<usize>) {
             (N, Some(N))
+        }
+
+        fn nth(&mut self, n: usize) -> Option<Self::Item> {
+            self.index_forward += n;
+            self.next()
         }
     }
 
@@ -125,6 +140,11 @@ pub mod iter {
             self.index_backward -= 1;
             let result = self.ringbuffer.get_oldest(self.index_backward);
             Some(result)
+        }
+
+        fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+            self.index_backward -= n;
+            self.next_back()
         }
     }
 
@@ -185,12 +205,16 @@ pub mod iter_mut {
     {
         type Item = &'a mut T;
 
-        fn next(&mut self) -> Option<&'a mut T> {
+        fn next(&mut self) -> Option<Self::Item> {
             self.0.next()
         }
 
         fn size_hint(&self) -> (usize, Option<usize>) {
             (N, Some(N))
+        }
+
+        fn nth(&mut self, n: usize) -> Option<Self::Item> {
+            self.0.nth(n)
         }
     }
 
@@ -200,6 +224,10 @@ pub mod iter_mut {
     {
         fn next_back(&mut self) -> Option<Self::Item> {
             self.0.next_back()
+        }
+
+        fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+            self.0.nth_back(n)
         }
     }
 
