@@ -1,6 +1,6 @@
 pub mod into_iter {
     use crate::RingBuffer;
-    use std::iter::FusedIterator;
+    use core::iter::FusedIterator;
 
     impl<T, const N: usize> IntoIterator for RingBuffer<T, N>
     where
@@ -77,7 +77,7 @@ pub mod into_iter {
 
 pub mod iter {
     use crate::RingBuffer;
-    use std::iter::FusedIterator;
+    use core::iter::FusedIterator;
 
     // --------------- non consuming iter
     impl<'a, T, const N: usize> IntoIterator for &'a RingBuffer<T, N>
@@ -168,9 +168,9 @@ pub mod iter {
 
 pub mod iter_mut {
     use crate::RingBuffer;
-    use std::iter::Chain;
-    use std::iter::FusedIterator;
-    use std::slice::IterMut;
+    use core::iter::Chain;
+    use core::iter::FusedIterator;
+    use core::slice::IterMut;
 
     // --------------- non consuming iter
     pub struct RingBufferIterMut<'a, T: Copy, const N: usize>(

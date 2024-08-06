@@ -1,3 +1,5 @@
+#![no_std]
+
 pub mod iterators;
 mod test;
 
@@ -11,24 +13,6 @@ impl<T, const N: usize> RingBuffer<T, N> {
     #[inline(always)]
     fn wrap_idx(idx: usize) -> usize {
         idx % N
-    }
-
-    pub fn put(&mut self, item: T) -> T {
-        use std::mem::replace;
-        let old = replace(&mut self.buffer[self.head], item);
-        self.head = Self::wrap_idx(self.head + 1);
-        old
-    }
-}
-
-impl<T, const N: usize> RingBuffer<T, N>
-where
-    T: Default,
-{
-    pub fn get_owned(&mut self, idx: isize) -> T {
-        use std::mem::take;
-        let new_idx = usize::wrapping_add_signed(self.head, idx);
-        take(&mut self.buffer[Self::wrap_idx(new_idx)])
     }
 }
 
@@ -64,6 +48,18 @@ where
             buffer: [init_value; N],
             head: 0,
         }
+    }
+
+    pub fn put(&mut self, item: T) {
+        self.buffer[self.head] = item;
+        self.head = Self::wrap_idx(self.head + 1);
+    }
+
+    pub fn replace(&mut self, item: T) -> T {
+        let old = self.buffer[self.head];
+        self.buffer[self.head] = item;
+        self.head = Self::wrap_idx(self.head + 1);
+        old
     }
 
     pub fn get_oldest(&self, idx: usize) -> T {
