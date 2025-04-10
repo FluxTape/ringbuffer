@@ -104,7 +104,7 @@ pub mod iter {
         index_backward: usize,
     }
 
-    impl<'a, T, const N: usize> Iterator for RingBufferIter<'a, T, N>
+    impl<T, const N: usize> Iterator for RingBufferIter<'_, T, N>
     where
         T: Copy,
     {
